@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  beam-imageboard-uploader:
+    image: beam-imageboard-uploader:latest
+    container_name: beam-imageboard-uploader
+    build:
+      context: ../
+      dockerfile: ./docker/Dockerfile
+    env_file: ../.env
+    networks:
+      - beam-imageboard-uploader-net
+    restart: always
+
+  beam-imageboard-uploader-redis:
+    image: redis:latest
+    container_name: beam-imageboard-uploader-redis
+    expose:
+      - 6379
+    volumes:
+      - beam-imageboard-uploader-redis-data:/data
+    networks:
+      - beam-imageboard-uploader-net
+    restart: always
+
+networks:
+  beam-imageboard-uploader-net:
+    driver: bridge
+
+volumes:
+  beam-imageboard-uploader-redis-data:
+    driver: local

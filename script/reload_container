@@ -1,0 +1,6 @@
+#!/bin/bash
+
+./gradlew installDist
+docker-compose -f ./docker/docker-compose.yml down
+docker volume rm -f docker_beam-imageboard-uploader-redis-data
+docker-compose -f ./docker/docker-compose.yml up --build
