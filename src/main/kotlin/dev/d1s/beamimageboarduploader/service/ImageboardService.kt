@@ -27,14 +27,17 @@ import dev.d1s.beam.commons.Block
 import dev.d1s.beam.commons.BlockSize
 import dev.d1s.beam.commons.RowAlign
 import dev.d1s.beamimageboarduploader.config.ApplicationConfig
+import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.files.PhotoSize
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import org.lighthousegames.logging.logging
 
 interface ImageboardService {
 
-    suspend fun addImage(photoSize: PhotoSize): Result<Block>
+    suspend fun addImage(photoSize: PhotoSize, chatId: IdChatIdentifier): Result<Block>
 
     suspend fun initSpace()
 }
@@ -49,35 +52,39 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
 
     private lateinit var spaceContext: SpaceContext
 
+    private val mutex = Mutex()
+
     private val log = logging()
 
-    override suspend fun addImage(photoSize: PhotoSize): Result<Block> =
+    override suspend fun addImage(photoSize: PhotoSize, chatId: IdChatIdentifier): Result<Block> =
         runCatching {
-            log.i {
-                "Adding photo ${photoSize.fileId} to your imageboard..."
+            mutex.withLock(owner = chatId) {
+                log.i {
+                    "Adding photo ${photoSize.fileId} to your imageboard..."
+                }
+
+                val imageUrl = storageService.uploadFile(photoSize).getOrThrow().toString()
+
+                val block = spaceContext.block {
+                    setIndex { 0 }
+
+                    setSize {
+                        BlockSize.HALF
+                    }
+
+                    setEntities {
+                        fullWidthImage(url = imageUrl)
+                    }
+
+                    setMetadata {
+                        setBlockImageEntityFluid()
+                    }
+                }
+
+                spaceContext.configureRow()
+
+                block
             }
-
-            val imageUrl = storageService.uploadFile(photoSize).getOrThrow().toString()
-
-            val block = spaceContext.block {
-                setIndex { 0 }
-
-                setSize {
-                    BlockSize.HALF
-                }
-
-                setEntities {
-                    fullWidthImage(url = imageUrl)
-                }
-
-                setMetadata {
-                    setBlockImageEntityFluid()
-                }
-            }
-
-            spaceContext.configureRow()
-
-            block
         }
 
     override suspend fun initSpace() {

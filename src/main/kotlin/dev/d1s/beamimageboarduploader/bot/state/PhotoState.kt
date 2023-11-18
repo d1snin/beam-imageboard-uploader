@@ -51,10 +51,10 @@ class PhotoStateHandler : StateHandler, KoinComponent {
         }
 
         strictlyOn<PhotoState, BotState> { state ->
-            requireAuthenticatedUser<BotState?>(state) {
+            requireAuthenticatedUser<BotState?>(state) { user ->
                 modifyMessage(state, uploadingText)
 
-                imageboardService.addImage(state.photoState).getOrElse {
+                imageboardService.addImage(state.photoState, user.id).getOrElse {
                     it.printStackTrace()
 
                     modifyMessage(state, failureText)
