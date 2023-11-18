@@ -81,14 +81,14 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
                     }
                 }
 
-                spaceContext.configureRow()
-
                 block
             }
         }
 
     override suspend fun initSpace() {
         applicationContext.space(config.beam.space, processBlocks = false) {
+            configureRow()
+
             spaceContext = this
         }
     }
