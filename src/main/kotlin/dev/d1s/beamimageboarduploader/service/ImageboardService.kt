@@ -69,7 +69,7 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
                     setIndex { 0 }
 
                     setSize {
-                        BlockSize.HALF
+                        BlockSize.MEDIUM
                     }
 
                     setEntities {
