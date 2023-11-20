@@ -23,6 +23,7 @@ import dev.d1s.beamimageboarduploader.util.requireAuthenticatedUser
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContextWithFSM
 import dev.inmo.tgbotapi.extensions.behaviour_builder.strictlyOn
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhoto
+import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhotoGallery
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import dev.inmo.tgbotapi.types.message.abstracts.Message
 import org.koin.core.component.KoinComponent
@@ -41,13 +42,23 @@ class PhotoStateHandler : StateHandler, KoinComponent {
     private val imageboardService by inject<ImageboardService>()
 
     override suspend fun BehaviourContextWithFSM<BotState>.handle() {
-        onPhoto { message ->
+        suspend fun startChainWithState(message: Message, photoSize: PhotoSize) {
             val state = PhotoState(
                 context = message,
-                message.content.media
+                photoSize
             )
 
             startChain(state)
+        }
+
+        onPhotoGallery { message ->
+            message.group.forEach {
+                startChainWithState(it.sourceMessage, it.content.media)
+            }
+        }
+
+        onPhoto { message ->
+            startChainWithState(message, message.content.media)
         }
 
         strictlyOn<PhotoState, BotState> { state ->
