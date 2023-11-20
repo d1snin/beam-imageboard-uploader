@@ -66,7 +66,9 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
                 val imageUrl = storageService.uploadFile(photoSize).getOrThrow().toString()
 
                 val block = spaceContext.block {
-                    setIndex { 0 }
+                    setIndex {
+                        config.beam.imageIndex
+                    }
 
                     setSize {
                         BlockSize.MEDIUM

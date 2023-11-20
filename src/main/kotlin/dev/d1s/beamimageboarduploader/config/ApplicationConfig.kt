@@ -37,7 +37,8 @@ data class MinioConfig(
 )
 
 data class BeamConfig(
-    val space: String
+    val space: String,
+    val imageIndex: Int
 )
 
 data class TelegramBotConfig(
