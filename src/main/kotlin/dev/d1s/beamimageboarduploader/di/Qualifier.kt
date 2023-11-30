@@ -21,6 +21,8 @@ import org.koin.core.qualifier.named
 object Qualifier {
 
     val StartCommand = named("start-command")
+    val StreamCommand = named("stream-command")
 
     val PhotoStateHandler = named("photo-state-handler")
+    val StreamStateHandler = named("stream-state-handler")
 }

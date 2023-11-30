@@ -27,6 +27,7 @@ import dev.d1s.beam.commons.Block
 import dev.d1s.beam.commons.BlockSize
 import dev.d1s.beam.commons.RowAlign
 import dev.d1s.beamimageboarduploader.config.ApplicationConfig
+import dev.d1s.exkt.common.pagination.Paginator
 import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import kotlinx.coroutines.sync.Mutex
@@ -38,6 +39,8 @@ import org.lighthousegames.logging.logging
 interface ImageboardService {
 
     suspend fun addImage(photoSize: PhotoSize, chatId: IdChatIdentifier): Result<Block>
+
+    suspend fun streamImageBlocks(process: suspend (List<Block>) -> Unit): Result<Unit>
 
     suspend fun initSpace()
 }
@@ -87,6 +90,28 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
             }
         }
 
+    override suspend fun streamImageBlocks(process: suspend (List<Block>) -> Unit): Result<Unit> =
+        runCatching {
+            val paginator = Paginator(STREAM_BATCH_SIZE, currentPage = 1)
+
+            suspend fun getBlocks() =
+                applicationContext.getBlocks(config.beam.space, limitAndOffset = paginator.limitAndOffset)
+                    .getOrThrow()
+                    .elements
+                    .filter {
+                        it.index >= config.beam.imageIndex
+                    }
+
+            var batch = getBlocks()
+
+            while (batch.isNotEmpty()) {
+                process(batch)
+
+                paginator.currentPage++
+                batch = getBlocks()
+            }
+        }
+
     override suspend fun initSpace() {
         applicationContext.space(config.beam.space, processBlocks = false) {
             configureRow()
@@ -103,5 +128,10 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
                 setRowStretch(stretch = false)
             }
         }
+    }
+
+    private companion object {
+
+        private const val STREAM_BATCH_SIZE = 50
     }
 }

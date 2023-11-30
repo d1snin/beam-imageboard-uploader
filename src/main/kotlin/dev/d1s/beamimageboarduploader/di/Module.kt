@@ -20,11 +20,9 @@ import dev.d1s.beam.client.app.ApplicationContext
 import dev.d1s.beamimageboarduploader.BeamImageboardUploaderApplication
 import dev.d1s.beamimageboarduploader.bot.DefaultTelegramBot
 import dev.d1s.beamimageboarduploader.bot.TelegramBot
-import dev.d1s.beamimageboarduploader.bot.command.Command
-import dev.d1s.beamimageboarduploader.bot.command.CommandHolder
-import dev.d1s.beamimageboarduploader.bot.command.DefaultCommandHolder
-import dev.d1s.beamimageboarduploader.bot.command.StartCommand
+import dev.d1s.beamimageboarduploader.bot.command.*
 import dev.d1s.beamimageboarduploader.bot.state.PhotoStateHandler
+import dev.d1s.beamimageboarduploader.bot.state.StreamStateHandler
 import dev.d1s.beamimageboarduploader.bot.state.StateHandler
 import dev.d1s.beamimageboarduploader.config.ApplicationConfigFactory
 import dev.d1s.beamimageboarduploader.config.DefaultApplicationConfigFactory
@@ -80,11 +78,19 @@ fun Module.commands() {
     singleOf<Command>(::StartCommand) {
         qualifier = Qualifier.StartCommand
     }
+
+    singleOf<Command>(::StreamCommand) {
+        qualifier = Qualifier.StreamCommand
+    }
 }
 
 fun Module.stateHandlers() {
     singleOf<StateHandler>(::PhotoStateHandler) {
         qualifier = Qualifier.PhotoStateHandler
+    }
+
+    singleOf<StateHandler>(::StreamStateHandler) {
+        qualifier = Qualifier.StreamStateHandler
     }
 }
 

@@ -44,6 +44,8 @@ dependencies {
 
     val beamVersion: String by project
 
+    val exktVersion: String by project
+
     val kredsVersion: String by project
 
     val tgbotapiVersion: String by project
@@ -63,6 +65,8 @@ dependencies {
     implementation("org.lighthousegames:logging:$kmLogVersion")
 
     implementation("dev.d1s.beam:beam-client-app:$beamVersion")
+
+    implementation("dev.d1s.exkt:exkt-common:$exktVersion")
 
     implementation("io.github.crackthecodeabhi:kreds:$kredsVersion")
 
