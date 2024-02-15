@@ -25,16 +25,16 @@ import dev.inmo.tgbotapi.extensions.behaviour_builder.strictlyOn
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhoto
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhotoGallery
 import dev.inmo.tgbotapi.types.files.PhotoSize
-import dev.inmo.tgbotapi.types.message.abstracts.Message
+import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 data class PhotoState(
-    override val context: Message,
+    override val context: AccessibleMessage,
     val photoState: PhotoSize
 ) : BotState {
 
-    override var botMessage: Message? = null
+    override var botMessage: AccessibleMessage? = null
 }
 
 class PhotoStateHandler : StateHandler, KoinComponent {
@@ -42,7 +42,7 @@ class PhotoStateHandler : StateHandler, KoinComponent {
     private val imageboardService by inject<ImageboardService>()
 
     override suspend fun BehaviourContextWithFSM<BotState>.handle() {
-        suspend fun startChainWithState(message: Message, photoSize: PhotoSize) {
+        suspend fun startChainWithState(message: AccessibleMessage, photoSize: PhotoSize) {
             val state = PhotoState(
                 context = message,
                 photoSize

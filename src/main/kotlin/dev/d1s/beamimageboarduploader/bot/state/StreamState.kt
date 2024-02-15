@@ -26,15 +26,15 @@ import dev.inmo.tgbotapi.extensions.api.send.media.sendPhoto
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContextWithFSM
 import dev.inmo.tgbotapi.extensions.behaviour_builder.strictlyOn
 import dev.inmo.tgbotapi.requests.abstracts.InputFile
-import dev.inmo.tgbotapi.types.message.abstracts.Message
+import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 data class StreamState(
-    override val context: Message
+    override val context: AccessibleMessage
 ) : BotState {
 
-    override var botMessage: Message? = null
+    override var botMessage: AccessibleMessage? = null
 }
 
 class StreamStateHandler : StateHandler, KoinComponent {

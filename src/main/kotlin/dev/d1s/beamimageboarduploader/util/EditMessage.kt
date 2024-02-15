@@ -20,13 +20,13 @@ import dev.inmo.tgbotapi.extensions.api.edit.reply_markup.editMessageReplyMarkup
 import dev.inmo.tgbotapi.extensions.api.edit.text.editMessageText
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.types.buttons.InlineKeyboardMarkup
-import dev.inmo.tgbotapi.types.message.abstracts.Message
+import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
 import dev.inmo.tgbotapi.types.message.textsources.TextSourcesList
 import dev.inmo.tgbotapi.utils.RiskFeature
 
 @OptIn(RiskFeature::class)
 suspend fun BehaviourContext.editMessageTextAndMarkup(
-    message: Message,
+    message: AccessibleMessage,
     text: TextSourcesList,
     markup: InlineKeyboardMarkup? = null
 ) {

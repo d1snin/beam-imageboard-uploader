@@ -21,14 +21,14 @@ import dev.inmo.micro_utils.fsm.common.State
 import dev.inmo.tgbotapi.extensions.api.send.sendMessage
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContext
 import dev.inmo.tgbotapi.types.buttons.InlineKeyboardMarkup
-import dev.inmo.tgbotapi.types.message.abstracts.Message
+import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
 import dev.inmo.tgbotapi.types.message.textsources.TextSourcesList
 
 interface BotState : State {
 
-    override val context: Message
+    override val context: AccessibleMessage
 
-    var botMessage: Message?
+    var botMessage: AccessibleMessage?
 }
 
 suspend fun BehaviourContext.modifyMessage(
