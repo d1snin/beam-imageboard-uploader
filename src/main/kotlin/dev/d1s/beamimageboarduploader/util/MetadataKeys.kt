@@ -14,17 +14,9 @@
  * limitations under the License.
  */
 
-package dev.d1s.beamimageboarduploader.di
+package dev.d1s.beamimageboarduploader.util
 
-import org.koin.core.qualifier.named
+object MetadataKeys {
 
-object Qualifier {
-
-    val StartCommand = named("start-command")
-    val StreamCommand = named("stream-command")
-    val SyncCommand = named("sync-command")
-
-    val PhotoStateHandler = named("photo-state-handler")
-    val StreamStateHandler = named("stream-state-handler")
-    val SyncStateHandler = named("sync-state-handler")
+    const val IMAGEBOARD_BLOCK_MANAGED = "imageboard.block.managed"
 }

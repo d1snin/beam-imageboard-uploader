@@ -22,8 +22,9 @@ import dev.d1s.beamimageboarduploader.bot.DefaultTelegramBot
 import dev.d1s.beamimageboarduploader.bot.TelegramBot
 import dev.d1s.beamimageboarduploader.bot.command.*
 import dev.d1s.beamimageboarduploader.bot.state.PhotoStateHandler
-import dev.d1s.beamimageboarduploader.bot.state.StreamStateHandler
 import dev.d1s.beamimageboarduploader.bot.state.StateHandler
+import dev.d1s.beamimageboarduploader.bot.state.StreamStateHandler
+import dev.d1s.beamimageboarduploader.bot.state.SyncStateHandler
 import dev.d1s.beamimageboarduploader.config.ApplicationConfigFactory
 import dev.d1s.beamimageboarduploader.config.DefaultApplicationConfigFactory
 import dev.d1s.beamimageboarduploader.database.DefaultRedisClientFactory
@@ -82,6 +83,10 @@ fun Module.commands() {
     singleOf<Command>(::StreamCommand) {
         qualifier = Qualifier.StreamCommand
     }
+
+    singleOf<Command>(::SyncCommand) {
+        qualifier = Qualifier.SyncCommand
+    }
 }
 
 fun Module.stateHandlers() {
@@ -91,6 +96,10 @@ fun Module.stateHandlers() {
 
     singleOf<StateHandler>(::StreamStateHandler) {
         qualifier = Qualifier.StreamStateHandler
+    }
+
+    singleOf<StateHandler>(::SyncStateHandler) {
+        qualifier = Qualifier.SyncStateHandler
     }
 }
 

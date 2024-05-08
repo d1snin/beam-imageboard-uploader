@@ -27,7 +27,7 @@ import dev.d1s.beam.commons.Block
 import dev.d1s.beam.commons.BlockSize
 import dev.d1s.beam.commons.RowAlign
 import dev.d1s.beamimageboarduploader.config.ApplicationConfig
-import dev.d1s.exkt.common.pagination.Paginator
+import dev.d1s.beamimageboarduploader.util.MetadataKeys
 import dev.inmo.tgbotapi.types.IdChatIdentifier
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import kotlinx.coroutines.sync.Mutex
@@ -40,7 +40,9 @@ interface ImageboardService {
 
     suspend fun addImage(photoSize: PhotoSize, chatId: IdChatIdentifier): Result<Block>
 
-    suspend fun streamImageBlocks(process: suspend (List<Block>) -> Unit): Result<Unit>
+    suspend fun streamImageBlocks(process: suspend (Block) -> Unit): Result<Unit>
+
+    suspend fun syncImages(): Result<Unit>
 
     suspend fun initSpace()
 }
@@ -67,53 +69,44 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
                 }
 
                 val imageUrl = storageService.uploadFile(photoSize).getOrThrow().toString()
-
-                val block = spaceContext.block {
-                    setIndex {
-                        config.beam.imageIndex
-                    }
-
-                    setSize {
-                        BlockSize.MEDIUM
-                    }
-
-                    setEntities {
-                        fullWidthImage(url = imageUrl)
-                    }
-
-                    setMetadata {
-                        setBlockImageEntityFluid()
-                    }
-                }
-
-                block
+                addImageBlock(imageUrl)
             }
         }
 
-    override suspend fun streamImageBlocks(process: suspend (List<Block>) -> Unit): Result<Unit> =
+    override suspend fun streamImageBlocks(process: suspend (Block) -> Unit): Result<Unit> =
         runCatching {
-            val paginator = Paginator(STREAM_BATCH_SIZE, currentPage = 1)
+            applicationContext.iterateBlocks(config.beam.space) { block ->
+                if (block.metadata[MetadataKeys.IMAGEBOARD_BLOCK_MANAGED] == "true") {
+                    process(block)
+                }
+            }.getOrThrow()
+        }
 
-            suspend fun getBlocks() =
-                applicationContext.getBlocks(config.beam.space, limitAndOffset = paginator.limitAndOffset)
-                    .getOrThrow()
-                    .elements
-                    .filter {
-                        it.index >= config.beam.imageIndex
-                    }
-
-            var batch = getBlocks()
-
-            while (batch.isNotEmpty()) {
-                process(batch)
-
-                paginator.currentPage++
-                batch = getBlocks()
+    override suspend fun syncImages(): Result<Unit> =
+        runCatching {
+            log.i {
+                "Syncing images..."
             }
+
+            streamImageBlocks { block ->
+                log.d {
+                    "Removing block ${block.id}..."
+                }
+
+                applicationContext.deleteBlock(block.id).getOrThrow()
+            }.getOrThrow()
+
+            storageService.streamImageUrls { url ->
+                log.d {
+                    "Adding block with image '$url'..."
+                }
+
+                addImageBlock(url)
+            }.getOrThrow()
         }
 
     override suspend fun initSpace() {
-        applicationContext.space(config.beam.space, processBlocks = false) {
+        applicationContext.space(config.beam.space) {
             configureRow()
 
             spaceContext = this
@@ -130,8 +123,23 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
         }
     }
 
-    private companion object {
+    private suspend fun addImageBlock(imageUrl: String) =
+        spaceContext.block(manage = false) {
+            setIndex {
+                config.beam.imageIndex
+            }
 
-        private const val STREAM_BATCH_SIZE = 50
-    }
+            setSize {
+                BlockSize.MEDIUM
+            }
+
+            setEntities {
+                fullWidthImage(url = imageUrl)
+            }
+
+            setMetadata {
+                setBlockImageEntityFluid()
+                metadata(MetadataKeys.IMAGEBOARD_BLOCK_MANAGED, "true")
+            }
+        }
 }

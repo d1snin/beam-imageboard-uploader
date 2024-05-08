@@ -24,6 +24,7 @@ import dev.inmo.tgbotapi.extensions.api.get.getFileAdditionalInfo
 import dev.inmo.tgbotapi.types.files.PhotoSize
 import io.ktor.http.*
 import io.ktor.utils.io.jvm.javaio.*
+import io.minio.ListObjectsArgs
 import io.minio.PutObjectArgs
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,6 +35,8 @@ import org.lighthousegames.logging.logging
 interface StorageService {
 
     suspend fun uploadFile(photoSize: PhotoSize): Result<Url>
+
+    suspend fun streamImageUrls(process: suspend (String) -> Unit): Result<Unit>
 }
 
 class DefaultStorageService : StorageService, KoinComponent {
@@ -56,11 +59,13 @@ class DefaultStorageService : StorageService, KoinComponent {
 
     private val log = logging()
 
+    private val bucket by lazy {
+        config.minio.bucketName
+    }
+
     override suspend fun uploadFile(photoSize: PhotoSize): Result<Url> =
         runCatching {
             mutex.withLock {
-                val bucket = config.minio.bucketName
-
                 val fileId = photoSize.fileId
                 val uniqueFileId = photoSize.fileUniqueId
                 val objectName = "$uniqueFileId.jpg"
@@ -93,6 +98,24 @@ class DefaultStorageService : StorageService, KoinComponent {
                 }.build()
 
                 url
+            }
+        }
+
+    override suspend fun streamImageUrls(process: suspend (String) -> Unit): Result<Unit> =
+        runCatching {
+            val args = ListObjectsArgs.builder()
+                .bucket(bucket)
+                .build()
+
+            val objects = minio.listObjects(args)
+
+            objects.forEach {
+                val objectName = it.get().objectName()
+                val url = URLBuilder(config.minio.endpoint).apply {
+                    path(config.minio.bucketName, objectName)
+                }.buildString()
+
+                process(url)
             }
         }
 
