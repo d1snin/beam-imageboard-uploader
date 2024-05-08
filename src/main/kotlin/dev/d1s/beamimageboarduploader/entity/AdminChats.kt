@@ -18,6 +18,7 @@ package dev.d1s.beamimageboarduploader.entity
 
 import dev.inmo.tgbotapi.types.ChatId
 import dev.inmo.tgbotapi.types.IdChatIdentifier
+import dev.inmo.tgbotapi.types.RawChatId
 
 @JvmInline
 value class AdminChats(
@@ -34,7 +35,7 @@ value class AdminChats(
 
         fun deserialize(chats: String): AdminChats {
             val chatIds = chats.split(SEPARATOR).map {
-                ChatId(it.toLong())
+                ChatId(RawChatId(it.toLong()))
             }
 
             return AdminChats(chatIds)
