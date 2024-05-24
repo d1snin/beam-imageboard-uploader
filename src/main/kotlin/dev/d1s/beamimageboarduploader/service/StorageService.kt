@@ -21,7 +21,7 @@ import dev.d1s.beamimageboarduploader.config.ApplicationConfig
 import dev.d1s.beamimageboarduploader.s3.MinioClientFactory
 import dev.inmo.tgbotapi.extensions.api.files.downloadFileStream
 import dev.inmo.tgbotapi.extensions.api.get.getFileAdditionalInfo
-import dev.inmo.tgbotapi.types.files.PhotoSize
+import dev.inmo.tgbotapi.types.files.TelegramMediaFile
 import io.ktor.http.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.minio.ListObjectsArgs
@@ -34,7 +34,7 @@ import org.lighthousegames.logging.logging
 
 interface StorageService {
 
-    suspend fun uploadFile(photoSize: PhotoSize): Result<Url>
+    suspend fun uploadFile(file: TelegramMediaFile): Result<Url>
 
     suspend fun streamImageUrls(process: suspend (String) -> Unit): Result<Unit>
 }
@@ -63,18 +63,18 @@ class DefaultStorageService : StorageService, KoinComponent {
         config.minio.bucketName
     }
 
-    override suspend fun uploadFile(photoSize: PhotoSize): Result<Url> =
+    override suspend fun uploadFile(file: TelegramMediaFile): Result<Url> =
         runCatching {
             mutex.withLock {
-                val fileId = photoSize.fileId
-                val uniqueFileId = photoSize.fileUniqueId
+                val fileId = file.fileId
+                val uniqueFileId = file.fileUniqueId
                 val objectName = "$uniqueFileId.jpg"
 
                 log.i {
                     "Uploading file '$objectName' to bucket '$bucket'"
                 }
 
-                val file = requestExecutor.downloadFileStream(fileId).toInputStream()
+                val downloadedFile = requestExecutor.downloadFileStream(fileId).toInputStream()
                 val fileSize = requestExecutor.getFileAdditionalInfo(fileId).fileSize
                 requireNotNull(fileSize) {
                     "File size is null"
@@ -87,7 +87,7 @@ class DefaultStorageService : StorageService, KoinComponent {
                 val args = PutObjectArgs.builder()
                     .bucket(bucket)
                     .`object`(objectName)
-                    .stream(file, fileSize, DEFAULT_PART_SIZE)
+                    .stream(downloadedFile, fileSize, DEFAULT_PART_SIZE)
                     .contentType(ContentType.Image.JPEG.toString())
                     .build()
 

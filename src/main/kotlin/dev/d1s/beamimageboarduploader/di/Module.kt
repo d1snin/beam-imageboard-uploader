@@ -21,7 +21,7 @@ import dev.d1s.beamimageboarduploader.BeamImageboardUploaderApplication
 import dev.d1s.beamimageboarduploader.bot.DefaultTelegramBot
 import dev.d1s.beamimageboarduploader.bot.TelegramBot
 import dev.d1s.beamimageboarduploader.bot.command.*
-import dev.d1s.beamimageboarduploader.bot.state.PhotoStateHandler
+import dev.d1s.beamimageboarduploader.bot.state.ImageStateHandler
 import dev.d1s.beamimageboarduploader.bot.state.StateHandler
 import dev.d1s.beamimageboarduploader.bot.state.StreamStateHandler
 import dev.d1s.beamimageboarduploader.bot.state.SyncStateHandler
@@ -90,8 +90,8 @@ fun Module.commands() {
 }
 
 fun Module.stateHandlers() {
-    singleOf<StateHandler>(::PhotoStateHandler) {
-        qualifier = Qualifier.PhotoStateHandler
+    singleOf<StateHandler>(::ImageStateHandler) {
+        qualifier = Qualifier.ImageStateHandler
     }
 
     singleOf<StateHandler>(::StreamStateHandler) {

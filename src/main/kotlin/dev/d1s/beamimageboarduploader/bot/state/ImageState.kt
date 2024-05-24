@@ -22,50 +22,36 @@ import dev.d1s.beamimageboarduploader.util.makeTitle
 import dev.d1s.beamimageboarduploader.util.requireAuthenticatedUser
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContextWithFSM
 import dev.inmo.tgbotapi.extensions.behaviour_builder.strictlyOn
+import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onDocument
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhoto
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhotoGallery
-import dev.inmo.tgbotapi.types.files.PhotoSize
+import dev.inmo.tgbotapi.types.files.TelegramMediaFile
 import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import javax.activation.MimeType
 
-data class PhotoState(
+data class ImageState(
     override val context: AccessibleMessage,
-    val photoState: PhotoSize
+    val file: TelegramMediaFile
 ) : BotState {
 
     override var botMessage: AccessibleMessage? = null
 }
 
-class PhotoStateHandler : StateHandler, KoinComponent {
+class ImageStateHandler : StateHandler, KoinComponent {
 
     private val imageboardService by inject<ImageboardService>()
 
     override suspend fun BehaviourContextWithFSM<BotState>.handle() {
-        suspend fun startChainWithState(message: AccessibleMessage, photoSize: PhotoSize) {
-            val state = PhotoState(
-                context = message,
-                photoSize
-            )
+        handlePhoto()
+        handleDocument()
 
-            startChain(state)
-        }
-
-        onPhotoGallery { message ->
-            message.group.forEach {
-                startChainWithState(it.sourceMessage, it.content.media)
-            }
-        }
-
-        onPhoto { message ->
-            startChainWithState(message, message.content.media)
-        }
-
-        strictlyOn<PhotoState, BotState> { state ->
+        strictlyOn<ImageState, BotState> { state ->
             requireAuthenticatedUser<BotState?>(state) { user ->
                 modifyMessage(state, uploadingText)
 
-                imageboardService.addImage(state.photoState, user.id).getOrElse {
+                imageboardService.addImage(state.file, user.id).getOrElse {
                     it.printStackTrace()
 
                     modifyMessage(state, failureText)
@@ -78,6 +64,41 @@ class PhotoStateHandler : StateHandler, KoinComponent {
                 null
             }
         }
+    }
+
+    private suspend fun BehaviourContextWithFSM<BotState>.handlePhoto() {
+        onPhoto { message ->
+            startChainWithState(message, message.content.media)
+        }
+
+        onPhotoGallery { message ->
+            message.group.forEach {
+                startChainWithState(it.sourceMessage, it.content.media)
+            }
+        }
+    }
+
+    private suspend fun BehaviourContextWithFSM<BotState>.handleDocument() {
+        onDocument { message ->
+            val requiredMime = MimeType("image/*")
+            val media = message.content.media
+
+            if (media.mimeType?.match(requiredMime) == true) {
+                startChainWithState(message, media)
+            }
+        }
+    }
+
+    private suspend fun BehaviourContextWithFSM<BotState>.startChainWithState(
+        message: AccessibleMessage,
+        file: TelegramMediaFile
+    ) {
+        val state = ImageState(
+            context = message,
+            file
+        )
+
+        startChain(state)
     }
 
     private companion object {

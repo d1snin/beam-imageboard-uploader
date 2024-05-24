@@ -29,7 +29,7 @@ import dev.d1s.beam.commons.RowAlign
 import dev.d1s.beamimageboarduploader.config.ApplicationConfig
 import dev.d1s.beamimageboarduploader.util.MetadataKeys
 import dev.inmo.tgbotapi.types.IdChatIdentifier
-import dev.inmo.tgbotapi.types.files.PhotoSize
+import dev.inmo.tgbotapi.types.files.TelegramMediaFile
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.KoinComponent
@@ -38,7 +38,7 @@ import org.lighthousegames.logging.logging
 
 interface ImageboardService {
 
-    suspend fun addImage(photoSize: PhotoSize, chatId: IdChatIdentifier): Result<Block>
+    suspend fun addImage(file: TelegramMediaFile, chatId: IdChatIdentifier): Result<Block>
 
     suspend fun streamImageBlocks(process: suspend (Block) -> Unit): Result<Unit>
 
@@ -61,14 +61,14 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
 
     private val log = logging()
 
-    override suspend fun addImage(photoSize: PhotoSize, chatId: IdChatIdentifier): Result<Block> =
+    override suspend fun addImage(file: TelegramMediaFile, chatId: IdChatIdentifier): Result<Block> =
         runCatching {
             mutex.withLock(owner = chatId) {
                 log.i {
-                    "Adding photo ${photoSize.fileId} to your imageboard..."
+                    "Adding photo ${file.fileId} to your imageboard..."
                 }
 
-                val imageUrl = storageService.uploadFile(photoSize).getOrThrow().toString()
+                val imageUrl = storageService.uploadFile(file).getOrThrow().toString()
                 addImageBlock(imageUrl)
             }
         }

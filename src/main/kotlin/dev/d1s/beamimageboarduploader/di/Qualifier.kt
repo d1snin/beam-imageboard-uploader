@@ -24,7 +24,7 @@ object Qualifier {
     val StreamCommand = named("stream-command")
     val SyncCommand = named("sync-command")
 
-    val PhotoStateHandler = named("photo-state-handler")
+    val ImageStateHandler = named("photo-state-handler")
     val StreamStateHandler = named("stream-state-handler")
     val SyncStateHandler = named("sync-state-handler")
 }
