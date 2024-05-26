@@ -22,10 +22,7 @@ import dev.d1s.beamimageboarduploader.util.makeTitle
 import dev.d1s.beamimageboarduploader.util.requireAuthenticatedUser
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContextWithFSM
 import dev.inmo.tgbotapi.extensions.behaviour_builder.strictlyOn
-import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onDocument
-import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onDocumentsGroupMessages
-import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhoto
-import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhotoGallery
+import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.*
 import dev.inmo.tgbotapi.types.files.DocumentFile
 import dev.inmo.tgbotapi.types.files.TelegramMediaFile
 import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
@@ -93,10 +90,8 @@ class ImageStateHandler : StateHandler, KoinComponent {
             processDocument(message, message.content.media)
         }
 
-        onDocumentsGroupMessages { message ->
-            message.content.group.forEach {
-                processDocument(message, it.content.media)
-            }
+        onDocumentMediaGroupContent { message ->
+            processDocument(message, message.content.media)
         }
     }
 
