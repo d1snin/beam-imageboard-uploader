@@ -90,8 +90,10 @@ class ImageStateHandler : StateHandler, KoinComponent {
             processDocument(message, message.content.media)
         }
 
-        onDocumentMediaGroupContent { message ->
-            processDocument(message, message.content.media)
+        onDocumentsGroup { message ->
+            message.group.forEach {
+                processDocument(it.sourceMessage, it.content.media)
+            }
         }
     }
 
