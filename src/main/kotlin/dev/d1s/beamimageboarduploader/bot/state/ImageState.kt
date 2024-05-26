@@ -23,8 +23,10 @@ import dev.d1s.beamimageboarduploader.util.requireAuthenticatedUser
 import dev.inmo.tgbotapi.extensions.behaviour_builder.BehaviourContextWithFSM
 import dev.inmo.tgbotapi.extensions.behaviour_builder.strictlyOn
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onDocument
+import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onDocumentsGroupMessages
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhoto
 import dev.inmo.tgbotapi.extensions.behaviour_builder.triggers_handling.onPhotoGallery
+import dev.inmo.tgbotapi.types.files.DocumentFile
 import dev.inmo.tgbotapi.types.files.TelegramMediaFile
 import dev.inmo.tgbotapi.types.message.abstracts.AccessibleMessage
 import org.koin.core.component.KoinComponent
@@ -79,12 +81,21 @@ class ImageStateHandler : StateHandler, KoinComponent {
     }
 
     private suspend fun BehaviourContextWithFSM<BotState>.handleDocument() {
-        onDocument { message ->
+        suspend fun processDocument(message: AccessibleMessage, media: DocumentFile) {
             val requiredMime = MimeType("image/*")
-            val media = message.content.media
 
             if (media.mimeType?.match(requiredMime) == true) {
                 startChainWithState(message, media)
+            }
+        }
+
+        onDocument { message ->
+            processDocument(message, message.content.media)
+        }
+
+        onDocumentsGroupMessages { message ->
+            message.content.group.forEach {
+                processDocument(message, it.content.media)
             }
         }
     }
