@@ -107,7 +107,9 @@ class DefaultStorageService : StorageService, KoinComponent {
                 .bucket(bucket)
                 .build()
 
-            val objects = minio.listObjects(args)
+            val objects = minio.listObjects(args).sortedByDescending {
+                it.get().lastModified()
+            }
 
             objects.forEach {
                 val objectName = it.get().objectName()
