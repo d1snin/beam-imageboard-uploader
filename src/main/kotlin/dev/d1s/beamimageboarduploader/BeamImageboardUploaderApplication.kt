@@ -41,7 +41,7 @@ class BeamImageboardUploaderApplication : BeamClientApplication(), KoinComponent
 
     override suspend fun ApplicationContext.run() {
         log.i {
-            "Beam Imageboard Uploader bot is starting..."
+            "Beam Imageboard Uploader bot is starting (${config.name})..."
         }
 
         setupDi(this)
