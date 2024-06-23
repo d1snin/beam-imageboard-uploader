@@ -53,7 +53,7 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
 
     private val storageService by inject<StorageService>()
 
-    private val config by inject<ApplicationConfig>()
+    private val appConfig by inject<ApplicationConfig>()
 
     private lateinit var spaceContext: SpaceContext
 
@@ -75,7 +75,7 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
 
     override suspend fun streamImageBlocks(process: suspend (Block) -> Unit): Result<Unit> =
         runCatching {
-            applicationContext.iterateBlocks(config.beam.space) { block ->
+            applicationContext.iterateBlocks(appConfig.beam.space) { block ->
                 if (block.metadata[MetadataKeys.IMAGEBOARD_BLOCK_MANAGED] == "true") {
                     process(block)
                 }
@@ -106,7 +106,7 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
         }
 
     override suspend fun initSpace() {
-        applicationContext.space(config.beam.space) {
+        applicationContext.space(appConfig.beam.space) {
             configureRow()
 
             spaceContext = this
@@ -126,7 +126,7 @@ class DefaultImageboardService : ImageboardService, KoinComponent {
     private suspend fun addImageBlock(imageUrl: String) =
         spaceContext.block(manage = false) {
             setIndex {
-                config.beam.imageIndex
+                appConfig.beam.imageIndex
             }
 
             setSize {
